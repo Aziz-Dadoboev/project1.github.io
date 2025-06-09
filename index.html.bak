@@ -111,7 +111,7 @@
         tg.enableClosingConfirmation();
 
         // URL вашего Google Sheets
-        const SHEET_URL = "https://opensheet.elk.sh/1kgVNeX9LBgomEXl9211qlcB9nDMdtyHVV56YDbB7Y1o/Таблица1";
+        const SHEET_URL = "https://opensheet.elk.sh/1kgVNeX9LBgomEXl9211qlcB9nDMdtyHVV56YDbB7Y1o/Лист1";
 
         // Иконки для деталей (можно использовать emoji или FontAwesome)
         const icons = {
