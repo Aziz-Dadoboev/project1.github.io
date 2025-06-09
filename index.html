@@ -107,34 +107,36 @@
 </head>
 <body>
   <div class="container">
-    <div class="filter-box">
-      <h3>Поиск мероприятий</h3>
-      <form id="filter-form">
-        <label>
-          Дата от:
-          <input type="date" id="filter-date-from" style="margin-bottom: 10px;">
-        </label><br>
-        <label>
-          Дата до:
-          <input type="date" id="filter-date-to" style="margin-bottom: 10px;">
-        </label><br>
-        <label>
-          Тип:
-          <select id="filter-type" style="margin-bottom: 10px;"></select>
-        </label><br>
-        <label>
-          Подтип:
-          <select id="filter-subtype" style="margin-bottom: 10px;"></select>
-        </label><br>
-        <label>
-          Цена:
-          <select id="filter-price" style="margin-bottom: 10px;">
-            <option value="">Любая</option>
-            <option value="Бесплатно">Бесплатно</option>
-            <option value="Платно">Платно</option>
-          </select>
-        </label><br>
-        <button type="submit">Применить</button>
+    <button id="toggle-filters" style="margin-bottom: 10px; padding: 10px 15px; background-color: #4e7cff; color: white; border: none; border-radius: 8px; font-weight: bold; font-size: 16px;">Поиск мероприятий</button>
+
+	<div class="filter-box" id="filter-box" style="display: none;">
+		<form id="filter-form">
+
+			<label>
+			  Дата от:
+			  <input type="date" id="filter-date-from" style="margin-bottom: 10px;">
+			</label><br>
+			<label>
+			  Дата до:
+			  <input type="date" id="filter-date-to" style="margin-bottom: 10px;">
+			</label><br>
+			<label>
+			  Тип:
+			  <select id="filter-type" style="margin-bottom: 10px;"></select>
+			</label><br>
+			<label>
+			  Подтип:
+			  <select id="filter-subtype" style="margin-bottom: 10px;"></select>
+			</label><br>
+			<label>
+			  Цена:
+			  <select id="filter-price" style="margin-bottom: 10px;">
+				<option value="">Любая</option>
+				<option value="Бесплатно">Бесплатно</option>
+				<option value="Платно">Платно</option>
+			  </select>
+			</label><br>
+			<button type="submit">Применить</button>
       </form>
     </div>
 
