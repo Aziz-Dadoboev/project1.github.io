@@ -262,6 +262,10 @@
       displayFeed(filtered);
     });
 
+	document.getElementById('toggle-filters').addEventListener('click', function () {
+		const box = document.getElementById('filter-box');
+		box.style.display = box.style.display === 'none' ? 'block' : 'none';
+	});
     loadData();
   </script>
 </body>
