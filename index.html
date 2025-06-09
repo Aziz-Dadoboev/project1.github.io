@@ -107,36 +107,37 @@
 </head>
 <body>
   <div class="container">
-    <button id="toggle-filters" style="margin-bottom: 10px; padding: 10px 15px; background-color: #4e7cff; color: white; border: none; border-radius: 8px; font-weight: bold; font-size: 16px;">Поиск мероприятий</button>
+    <button id="toggle-filters" type="button" style="margin-bottom: 10px; padding: 10px 15px; background-color: #4e7cff; color: white; border: none; border-radius: 8px; font-weight: bold; font-size: 16px;">
+      Поиск мероприятий
+    </button>
 
-	<div class="filter-box" id="filter-box" style="display: none;">
-		<form id="filter-form">
-
-			<label>
-			  Дата от:
-			  <input type="date" id="filter-date-from" style="margin-bottom: 10px;">
-			</label><br>
-			<label>
-			  Дата до:
-			  <input type="date" id="filter-date-to" style="margin-bottom: 10px;">
-			</label><br>
-			<label>
-			  Тип:
-			  <select id="filter-type" style="margin-bottom: 10px;"></select>
-			</label><br>
-			<label>
-			  Подтип:
-			  <select id="filter-subtype" style="margin-bottom: 10px;"></select>
-			</label><br>
-			<label>
-			  Цена:
-			  <select id="filter-price" style="margin-bottom: 10px;">
-				<option value="">Любая</option>
-				<option value="Бесплатно">Бесплатно</option>
-				<option value="Платно">Платно</option>
-			  </select>
-			</label><br>
-			<button type="submit">Применить</button>
+    <div class="filter-box" id="filter-box" style="display: none;">
+      <form id="filter-form">
+        <label>
+          Дата от:
+          <input type="date" id="filter-date-from" style="margin-bottom: 10px;">
+        </label><br>
+        <label>
+          Дата до:
+          <input type="date" id="filter-date-to" style="margin-bottom: 10px;">
+        </label><br>
+        <label>
+          Тип:
+          <select id="filter-type" style="margin-bottom: 10px;"></select>
+        </label><br>
+        <label>
+          Подтип:
+          <select id="filter-subtype" style="margin-bottom: 10px;"></select>
+        </label><br>
+        <label>
+          Цена:
+          <select id="filter-price" style="margin-bottom: 10px;">
+            <option value="">Любая</option>
+            <option value="Бесплатно">Бесплатно</option>
+            <option value="Платно">Платно</option>
+          </select>
+        </label><br>
+        <button type="submit">Применить</button>
       </form>
     </div>
 
@@ -145,128 +146,131 @@
   </div>
 
   <script>
-    const tg = window.Telegram.WebApp;
-    tg.expand();
-    tg.enableClosingConfirmation();
+    document.addEventListener('DOMContentLoaded', () => {
+      const tg = window.Telegram.WebApp;
+      tg.expand();
+      tg.enableClosingConfirmation();
 
-    const SHEET_URL = "https://opensheet.elk.sh/1kgVNeX9LBgomEXl9211qlcB9nDMdtyHVV56YDbB7Y1o/Лист1";
+      const SHEET_URL = "https://opensheet.elk.sh/1kgVNeX9LBgomEXl9211qlcB9nDMdtyHVV56YDbB7Y1o/Лист1";
 
-    const icons = {
-      location: '📍',
-      calendar: '📅',
-      price: '💰'
-    };
+      const icons = {
+        location: '📍',
+        calendar: '📅',
+        price: '💰'
+      };
 
-    let allEvents = [];
+      let allEvents = [];
 
-    async function loadData() {
-      try {
-        const response = await fetch(SHEET_URL);
-        if (!response.ok) throw new Error('Ошибка загрузки данных');
-        const data = await response.json();
-        if (data.length === 0) throw new Error('Нет мероприятий для отображения');
-        allEvents = data;
-        populateFilters(data);
-        displayFeed(data);
-      } catch (error) {
-        console.error('Ошибка:', error);
-        document.getElementById('loader').textContent = error.message;
+      async function loadData() {
+        try {
+          const response = await fetch(SHEET_URL);
+          if (!response.ok) throw new Error('Ошибка загрузки данных');
+          const data = await response.json();
+          if (data.length === 0) throw new Error('Нет мероприятий для отображения');
+          allEvents = data;
+          populateFilters(data);
+          displayFeed(data);
+        } catch (error) {
+          console.error('Ошибка:', error);
+          document.getElementById('loader').textContent = error.message;
+        }
       }
-    }
 
-    function populateFilters(data) {
-      const typeSet = new Set();
-      const subtypeSet = new Set();
+      function populateFilters(data) {
+        const typeSet = new Set();
+        const subtypeSet = new Set();
 
-      data.forEach(event => {
-        if (event.Тип) typeSet.add(event.Тип);
-        if (event.Подтип) subtypeSet.add(event.Подтип);
-      });
+        data.forEach(event => {
+          if (event.Тип) typeSet.add(event.Тип);
+          if (event.Подтип) subtypeSet.add(event.Подтип);
+        });
 
-      const typeSelect = document.getElementById('filter-type');
-      const subtypeSelect = document.getElementById('filter-subtype');
+        const typeSelect = document.getElementById('filter-type');
+        const subtypeSelect = document.getElementById('filter-subtype');
 
-      typeSelect.innerHTML = '<option value="">Любой</option>';
-      subtypeSelect.innerHTML = '<option value="">Любой</option>';
+        typeSelect.innerHTML = '<option value="">Любой</option>';
+        subtypeSelect.innerHTML = '<option value="">Любой</option>';
 
-      [...typeSet].forEach(type => {
-        typeSelect.innerHTML += `<option value="${type}">${type}</option>`;
-      });
+        [...typeSet].forEach(type => {
+          typeSelect.innerHTML += `<option value="${type}">${type}</option>`;
+        });
 
-      [...subtypeSet].forEach(subtype => {
-        subtypeSelect.innerHTML += `<option value="${subtype}">${subtype}</option>`;
-      });
-    }
+        [...subtypeSet].forEach(subtype => {
+          subtypeSelect.innerHTML += `<option value="${subtype}">${subtype}</option>`;
+        });
+      }
 
-    function displayFeed(events) {
-      const feedContainer = document.getElementById('feed-container');
-      feedContainer.innerHTML = '';
+      function displayFeed(events) {
+        const feedContainer = document.getElementById('feed-container');
+        feedContainer.innerHTML = '';
 
-      events.forEach(event => {
-        const priceClass = event.Цена === 'Бесплатно' ? 'free-price' : '';
-        const eventElement = document.createElement('div');
-        eventElement.className = 'feed-item';
-        eventElement.innerHTML = `
-          <div class="feed-header">
+        events.forEach(event => {
+          const priceClass = event.Цена === 'Бесплатно' ? 'free-price' : '';
+          const eventElement = document.createElement('div');
+          eventElement.className = 'feed-item';
+          eventElement.innerHTML = `
+            <div class="feed-header">
               <span class="event-type">${event.Тип || 'Мероприятие'}</span>
               <span class="event-date">${event.Дата || ''}</span>
-          </div>
-          <h3 class="event-title">${event.Описание || 'Название мероприятия'}</h3>
-          <div class="event-description">${event.Подтип || ''}</div>
-          <div class="event-details">
+            </div>
+            <h3 class="event-title">${event.Описание || 'Название мероприятия'}</h3>
+            <div class="event-description">${event.Подтип || ''}</div>
+            <div class="event-details">
               <div class="detail-item">
-                  <span class="detail-icon">${icons.location}</span>
-                  ${event.Город || 'Город не указан'}
+                <span class="detail-icon">${icons.location}</span>
+                ${event.Город || 'Город не указан'}
               </div>
               <div class="detail-item">
-                  <span class="detail-icon">${icons.calendar}</span>
-                  ${event.Дата || 'Дата не указана'}
+                <span class="detail-icon">${icons.calendar}</span>
+                ${event.Дата || 'Дата не указана'}
               </div>
               <div class="detail-item">
-                  <span class="detail-icon">${icons.price}</span>
-                  <span class="price-tag ${priceClass}">${event.Цена || 'Цена не указана'}</span>
+                <span class="detail-icon">${icons.price}</span>
+                <span class="price-tag ${priceClass}">${event.Цена || 'Цена не указана'}</span>
               </div>
-          </div>
-          ${event.Ссылка ? `<a href="${event.Ссылка}" class="event-link" target="_blank">Подробнее</a>` : ''}
-        `;
-        feedContainer.appendChild(eventElement);
+            </div>
+            ${event.Ссылка ? `<a href="${event.Ссылка}" class="event-link" target="_blank">Подробнее</a>` : ''}
+          `;
+          feedContainer.appendChild(eventElement);
+        });
+
+        document.getElementById('loader').style.display = 'none';
+      }
+
+      document.getElementById('filter-form').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const startDate = document.getElementById('filter-date-from').value;
+        const endDate = document.getElementById('filter-date-to').value;
+        const type = document.getElementById('filter-type').value;
+        const subtype = document.getElementById('filter-subtype').value;
+        const price = document.getElementById('filter-price').value;
+
+        const filtered = allEvents.filter(event => {
+          const eventDate = event.Дата ? new Date(event.Дата) : null;
+          const matchDate =
+            (!startDate || (eventDate && eventDate >= new Date(startDate))) &&
+            (!endDate || (eventDate && eventDate <= new Date(endDate)));
+
+          const matchType = !type || event.Тип === type;
+          const matchSubtype = !subtype || event.Подтип === subtype;
+          const matchPrice =
+            !price ||
+            (price === 'Бесплатно' && event.Цена === 'Бесплатно') ||
+            (price === 'Платно' && event.Цена !== 'Бесплатно');
+
+          return matchDate && matchType && matchSubtype && matchPrice;
+        });
+
+        displayFeed(filtered);
       });
 
-      document.getElementById('loader').style.display = 'none';
-    }
-
-    document.getElementById('filter-form').addEventListener('submit', function(e) {
-      e.preventDefault();
-      const startDate = document.getElementById('filter-date-from').value;
-      const endDate = document.getElementById('filter-date-to').value;
-      const type = document.getElementById('filter-type').value;
-      const subtype = document.getElementById('filter-subtype').value;
-      const price = document.getElementById('filter-price').value;
-
-      const filtered = allEvents.filter(event => {
-        const eventDate = event.Дата ? new Date(event.Дата) : null;
-        const matchDate =
-          (!startDate || (eventDate && eventDate >= new Date(startDate))) &&
-          (!endDate || (eventDate && eventDate <= new Date(endDate)));
-
-        const matchType = !type || event.Тип === type;
-        const matchSubtype = !subtype || event.Подтип === subtype;
-        const matchPrice =
-          !price ||
-          (price === 'Бесплатно' && event.Цена === 'Бесплатно') ||
-          (price === 'Платно' && event.Цена !== 'Бесплатно');
-
-        return matchDate && matchType && matchSubtype && matchPrice;
+      document.getElementById('toggle-filters').addEventListener('click', function () {
+        const box = document.getElementById('filter-box');
+        box.style.display = box.style.display === 'none' ? 'block' : 'none';
       });
 
-      displayFeed(filtered);
+      loadData();
     });
-
-	document.getElementById('toggle-filters').addEventListener('click', function () {
-		const box = document.getElementById('filter-box');
-		box.style.display = box.style.display === 'none' ? 'block' : 'none';
-	});
-    loadData();
   </script>
 </body>
 </html>
