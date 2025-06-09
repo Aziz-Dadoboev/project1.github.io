@@ -4,104 +4,133 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>Данные из Google Sheets</title>
+    <title>Список мероприятий</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         body {
             font-family: Arial, sans-serif;
-            padding: 20px;
-            background-color: #f5f5f5;
+            padding: 15px;
+            background-color: #f5f9ff;
         }
         h1 {
-            color: #333;
+            color: #2c3e50;
             text-align: center;
+            margin-bottom: 20px;
         }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 20px;
+        .event-list {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
         }
-        th, td {
-            border: 1px solid #ddd;
-            padding: 8px;
-            text-align: left;
+        .event-card {
+            background: white;
+            border-radius: 10px;
+            padding: 15px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
         }
-        th {
-            background-color: #f2f2f2;
+        .event-title {
+            font-weight: bold;
+            color: #3498db;
+            margin-bottom: 5px;
+        }
+        .event-detail {
+            display: flex;
+            margin-bottom: 3px;
+            font-size: 14px;
+        }
+        .detail-label {
+            font-weight: bold;
+            min-width: 80px;
+            color: #7f8c8d;
         }
         .loader {
+            text-align: center;
+            padding: 30px;
+            font-size: 18px;
+            color: #7f8c8d;
+        }
+        .error {
+            color: #e74c3c;
             text-align: center;
             padding: 20px;
         }
     </style>
 </head>
 <body>
-    <h1>Данные из Google Sheets</h1>
+    <h1>Список мероприятий</h1>
     <div id="loader" class="loader">Загрузка данных...</div>
-    <table id="data-table" style="display: none;">
-        <thead>
-            <tr id="table-header"></tr>
-        </thead>
-        <tbody id="table-body"></tbody>
-    </table>
+    <div id="event-list" class="event-list" style="display: none;"></div>
+    <div id="error" class="error" style="display: none;"></div>
 
     <script>
         // Инициализация Telegram WebApp
         const tg = window.Telegram.WebApp;
         tg.expand();
+        tg.enableClosingConfirmation();
 
-        // URL вашего Google Sheets в формате JSON
-        const SHEET_URL = "https://opensheet.elk.sh/1kgVNeX9LBgomEXl9211qlcB9nDMdtyHVV56YDbB7Y1o/Лист1";
+        // URL вашего Google Sheets через opensheet.elk.sh
+        const SHEET_URL = "https://opensheet.elk.sh/1kgVNeX9LBgomEXl9211qlcB9nDMdtyHVV56YDbB7Y1o/Таблица1";
 
         // Загрузка данных
         async function loadData() {
             try {
                 const response = await fetch(SHEET_URL);
+                if (!response.ok) throw new Error('Ошибка загрузки данных');
                 const data = await response.json();
+                
+                if (data.length === 0) {
+                    throw new Error('Нет данных для отображения');
+                }
+                
                 displayData(data);
             } catch (error) {
-                document.getElementById('loader').innerHTML = 
-                    'Ошибка загрузки данных: ' + error.message;
+                console.error('Ошибка:', error);
+                document.getElementById('loader').style.display = 'none';
+                const errorElement = document.getElementById('error');
+                errorElement.textContent = error.message;
+                errorElement.style.display = 'block';
             }
         }
 
-        // Отображение данных в таблице
-        function displayData(data) {
-            if (!data || data.length === 0) {
-                document.getElementById('loader').innerHTML = 'Нет данных для отображения';
-                return;
-            }
+        // Отображение данных
+        function displayData(events) {
+            const eventList = document.getElementById('event-list');
+            eventList.innerHTML = '';
             
-            const table = document.getElementById('data-table');
-            const headerRow = document.getElementById('table-header');
-            const tableBody = document.getElementById('table-body');
-            
-            // Очистка предыдущих данных
-            headerRow.innerHTML = '';
-            tableBody.innerHTML = '';
-            
-            // Создание заголовков (берём ключи первого элемента)
-            const headers = Object.keys(data[0]);
-            headers.forEach(header => {
-                const th = document.createElement('th');
-                th.textContent = header;
-                headerRow.appendChild(th);
+            events.forEach(event => {
+                const card = document.createElement('div');
+                card.className = 'event-card';
+                
+                card.innerHTML = `
+                    <div class="event-title">${event.Описание || 'Без названия'}</div>
+                    <div class="event-detail">
+                        <span class="detail-label">Город:</span>
+                        <span>${event.Город || 'Не указан'}</span>
+                    </div>
+                    <div class="event-detail">
+                        <span class="detail-label">Дата:</span>
+                        <span>${event.Дата || 'Не указана'}</span>
+                    </div>
+                    <div class="event-detail">
+                        <span class="detail-label">Тип:</span>
+                        <span>${event.Тип || 'Не указан'}</span>
+                    </div>
+                    <div class="event-detail">
+                        <span class="detail-label">Цена:</span>
+                        <span>${event.Цена || 'Не указана'}</span>
+                    </div>
+                    ${event.Ссылка ? `
+                    <div class="event-detail">
+                        <span class="detail-label">Ссылка:</span>
+                        <a href="${event.Ссылка}" target="_blank">Перейти</a>
+                    </div>` : ''}
+                `;
+                
+                eventList.appendChild(card);
             });
             
-            // Заполнение данными
-            data.forEach(row => {
-                const tr = document.createElement('tr');
-                headers.forEach(header => {
-                    const td = document.createElement('td');
-                    td.textContent = row[header] || '';
-                    tr.appendChild(td);
-                });
-                tableBody.appendChild(tr);
-            });
-            
-            // Показываем таблицу
             document.getElementById('loader').style.display = 'none';
-            table.style.display = 'table';
+            eventList.style.display = 'flex';
         }
 
         // Загружаем данные при открытии
