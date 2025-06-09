@@ -3,64 +3,106 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>Список мероприятий</title>
+    <title>Лента мероприятий</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         body {
-            font-family: Arial, sans-serif;
-            padding: 15px;
-            background-color: #f5f9ff;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f5f5f5;
+            color: #333;
         }
-        h1 {
-            color: #2c3e50;
-            text-align: center;
-            margin-bottom: 20px;
+        .container {
+            max-width: 100%;
+            padding: 10px;
         }
-        .event-list {
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-        }
-        .event-card {
+        .feed-item {
             background: white;
-            border-radius: 10px;
+            border-radius: 12px;
+            margin-bottom: 15px;
             padding: 15px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .feed-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+        .event-type {
+            background: #4e7cff;
+            color: white;
+            padding: 3px 8px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        .event-date {
+            color: #666;
+            font-size: 13px;
         }
         .event-title {
+            font-size: 18px;
             font-weight: bold;
-            color: #3498db;
-            margin-bottom: 5px;
+            margin-bottom: 8px;
+            color: #222;
         }
-        .event-detail {
+        .event-description {
+            margin-bottom: 12px;
+            line-height: 1.4;
+        }
+        .event-details {
             display: flex;
-            margin-bottom: 3px;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+        .detail-item {
+            display: flex;
+            align-items: center;
             font-size: 14px;
         }
-        .detail-label {
+        .detail-icon {
+            margin-right: 5px;
+            color: #4e7cff;
+        }
+        .event-link {
+            display: inline-block;
+            background: #4e7cff;
+            color: white;
+            padding: 8px 15px;
+            border-radius: 6px;
+            text-decoration: none;
             font-weight: bold;
-            min-width: 80px;
-            color: #7f8c8d;
+            margin-top: 5px;
+        }
+        .event-link:hover {
+            background: #3a6bf0;
         }
         .loader {
             text-align: center;
             padding: 30px;
-            font-size: 18px;
-            color: #7f8c8d;
+            font-size: 16px;
+            color: #666;
         }
-        .error {
-            color: #e74c3c;
-            text-align: center;
-            padding: 20px;
+        .price-tag {
+            background: #28a745;
+            color: white;
+            padding: 3px 8px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        .free-price {
+            background: #6c757d;
         }
     </style>
 </head>
 <body>
-    <h1>Список мероприятий</h1>
-    <div id="loader" class="loader">Загрузка данных...</div>
-    <div id="event-list" class="event-list" style="display: none;"></div>
-    <div id="error" class="error" style="display: none;"></div>
+    <div class="container">
+        <div id="loader" class="loader">Загрузка мероприятий...</div>
+        <div id="feed-container"></div>
+    </div>
 
     <script>
         // Инициализация Telegram WebApp
@@ -68,8 +110,15 @@
         tg.expand();
         tg.enableClosingConfirmation();
 
-        // URL вашего Google Sheets через opensheet.elk.sh
+        // URL вашего Google Sheets
         const SHEET_URL = "https://opensheet.elk.sh/1kgVNeX9LBgomEXl9211qlcB9nDMdtyHVV56YDbB7Y1o/Таблица1";
+
+        // Иконки для деталей (можно использовать emoji или FontAwesome)
+        const icons = {
+            location: '📍',
+            calendar: '📅',
+            price: '💰'
+        };
 
         // Загрузка данных
         async function loadData() {
@@ -79,58 +128,57 @@
                 const data = await response.json();
                 
                 if (data.length === 0) {
-                    throw new Error('Нет данных для отображения');
+                    throw new Error('Нет мероприятий для отображения');
                 }
                 
-                displayData(data);
+                displayFeed(data);
             } catch (error) {
                 console.error('Ошибка:', error);
-                document.getElementById('loader').style.display = 'none';
-                const errorElement = document.getElementById('error');
-                errorElement.textContent = error.message;
-                errorElement.style.display = 'block';
+                document.getElementById('loader').textContent = error.message;
             }
         }
 
-        // Отображение данных
-        function displayData(events) {
-            const eventList = document.getElementById('event-list');
-            eventList.innerHTML = '';
+        // Отображение ленты
+        function displayFeed(events) {
+            const feedContainer = document.getElementById('feed-container');
+            feedContainer.innerHTML = '';
             
             events.forEach(event => {
-                const card = document.createElement('div');
-                card.className = 'event-card';
+                const priceClass = event.Цена === 'Бесплатно' ? 'free-price' : '';
                 
-                card.innerHTML = `
-                    <div class="event-title">${event.Описание || 'Без названия'}</div>
-                    <div class="event-detail">
-                        <span class="detail-label">Город:</span>
-                        <span>${event.Город || 'Не указан'}</span>
+                const eventElement = document.createElement('div');
+                eventElement.className = 'feed-item';
+                eventElement.innerHTML = `
+                    <div class="feed-header">
+                        <span class="event-type">${event.Тип || 'Мероприятие'}</span>
+                        <span class="event-date">${event.Дата || ''}</span>
                     </div>
-                    <div class="event-detail">
-                        <span class="detail-label">Дата:</span>
-                        <span>${event.Дата || 'Не указана'}</span>
-                    </div>
-                    <div class="event-detail">
-                        <span class="detail-label">Тип:</span>
-                        <span>${event.Тип || 'Не указан'}</span>
-                    </div>
-                    <div class="event-detail">
-                        <span class="detail-label">Цена:</span>
-                        <span>${event.Цена || 'Не указана'}</span>
+                    <h3 class="event-title">${event.Описание || 'Название мероприятия'}</h3>
+                    <div class="event-description">${event.Подтип || ''}</div>
+                    <div class="event-details">
+                        <div class="detail-item">
+                            <span class="detail-icon">${icons.location}</span>
+                            ${event.Город || 'Город не указан'}
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-icon">${icons.calendar}</span>
+                            ${event.Дата || 'Дата не указана'}
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-icon">${icons.price}</span>
+                            <span class="price-tag ${priceClass}">${event.Цена || 'Цена не указана'}</span>
+                        </div>
                     </div>
                     ${event.Ссылка ? `
-                    <div class="event-detail">
-                        <span class="detail-label">Ссылка:</span>
-                        <a href="${event.Ссылка}" target="_blank">Перейти</a>
-                    </div>` : ''}
+                    <a href="${event.Ссылка}" class="event-link" target="_blank">
+                        Подробнее
+                    </a>` : ''}
                 `;
                 
-                eventList.appendChild(card);
+                feedContainer.appendChild(eventElement);
             });
             
             document.getElementById('loader').style.display = 'none';
-            eventList.style.display = 'flex';
         }
 
         // Загружаем данные при открытии
